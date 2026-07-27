@@ -15,9 +15,7 @@ public:
 	// Sets default values for this actor's properties
 	ATetrisPiece();
 
-	//For visiblity + Mesh
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Tetris")
-	TObjectPtr<UStaticMeshComponent> PieceMesh;
+	UFUNCTION(BlueprintCallable, Category = "Tetris") void StartControlWindow();
 
 	//For falling
 	UFUNCTION(BlueprintCallable, Category = "Tetris") void StartFalling();
@@ -27,8 +25,43 @@ protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
 
+	//For visiblity + Mesh
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Tetris")
+	TObjectPtr<UStaticMeshComponent> PieceMesh;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Tetris | Timing",
+		meta = (ClampMin = "1.0"))
+	int32 ControlDuration = 8;
+
+	UPROPERTY(VisibleInstanceOnly, BlueprintReadOnly, Category = "Tetris | Timing",
+		meta = (ClampMin = "1.0"))
+	int32 WarningTime = 3;
+
+	UPROPERTY(VisibleInstanceOnly, BlueprintReadOnly, Category = "Tetris Piece|Timing")
+	int32 TimeRemaining = 0;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Tetris Piece|Audio")
+	TObjectPtr<USoundBase> SirenSound;
+
+	// Blueprint can use this to update a HUD/widget.
+	UFUNCTION(BlueprintImplementableEvent, Category = "Tetris Piece|Events")
+	void OnCountdownChanged(int32 NewTimeRemaining);
+
+	// Blueprint can flash lights, change material, shake the camera, etc.
+	UFUNCTION(BlueprintImplementableEvent, Category = "Tetris Piece|Events")
+	void OnWarningStarted();
+
 public:	
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
 
+private:
+	
+	void CountdownStep();
+	void BeginWarning();
+	void CountdownFinished();
+
+	FTimerHandle CountdownTimerHandle;
+
+	bool bWarningStarted = false;
 };

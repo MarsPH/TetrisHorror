@@ -3,6 +3,7 @@
 
 #include "TetrisPiece.h"
 #include "Components/StaticMeshComponent.h"
+#include "Kismet/GameplayStatics.h"
 
 // Sets default values
 ATetrisPiece::ATetrisPiece()
@@ -19,6 +20,78 @@ ATetrisPiece::ATetrisPiece()
 	PieceMesh->SetSimulatePhysics(false);
 	
 }
+
+void ATetrisPiece::StartControlWindow()
+{
+	if (!IsValid(PieceMesh))
+	{
+		return;
+	}
+
+	PieceMesh->SetSimulatePhysics(false);
+
+	GetWorldTimerManager().ClearTimer(CountdownTimerHandle);
+
+	TimeRemaining = ControlDuration;
+	bWarningStarted = false;
+
+	OnCountdownChanged(TimeRemaining);
+
+	if (TimeRemaining <= WarningTime)
+	{
+		BeginWarning();
+	}
+
+	GetWorldTimerManager().SetTimer(
+		CountdownTimerHandle,
+		this,
+		&ATetrisPiece::CountdownStep,
+		1.0f,
+		true);
+}
+
+void ATetrisPiece::CountdownStep()
+{
+	TimeRemaining =FMath::Max(TimeRemaining - 1,0);
+
+	OnCountdownChanged(TimeRemaining);
+
+	if(!bWarningStarted &&
+		TimeRemaining <= WarningTime &&
+		TimeRemaining > 0)
+	{
+		BeginWarning();
+	}
+
+	if (TimeRemaining == 0)
+	{
+		CountdownFinished();
+	}
+}
+
+void ATetrisPiece::BeginWarning()
+{
+	bWarningStarted = true;
+
+	if(IsValid(SirenSound))
+	{
+		UGameplayStatics::PlaySoundAtLocation(
+			this,
+			SirenSound,
+			GetActorLocation());
+	}
+
+	OnWarningStarted();
+}
+
+void ATetrisPiece::CountdownFinished()
+{
+	GetWorldTimerManager().ClearTimer(CountdownTimerHandle);
+
+	StartFalling();
+}
+
+
 
 void ATetrisPiece::StartFalling()
 {
