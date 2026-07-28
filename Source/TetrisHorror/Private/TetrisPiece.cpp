@@ -18,6 +18,13 @@ ATetrisPiece::ATetrisPiece()
 
 	PieceMesh->SetMobility(EComponentMobility::Movable);
 	PieceMesh->SetSimulatePhysics(false);
+
+	PieceMesh->SetNotifyRigidBodyCollision(true);
+
+	PieceMesh->OnComponentHit.AddDynamic(
+		this,
+		&ATetrisPiece::OnPieceHit
+	);
 	
 }
 
@@ -27,6 +34,8 @@ void ATetrisPiece::StartControlWindow()
 	{
 		return;
 	}
+
+	bIsFalling = false;
 
 	PieceMesh->SetSimulatePhysics(false);
 
@@ -47,7 +56,8 @@ void ATetrisPiece::StartControlWindow()
 		this,
 		&ATetrisPiece::CountdownStep,
 		1.0f,
-		true);
+		true
+	);
 }
 
 void ATetrisPiece::CountdownStep()
@@ -100,6 +110,8 @@ void ATetrisPiece::StartFalling()
 		return;
 	}
 
+	bIsFalling = true;
+
 	PieceMesh->SetSimulatePhysics(true);
 	PieceMesh->WakeAllRigidBodies();
 }
@@ -108,6 +120,7 @@ void ATetrisPiece::StartFalling()
 void ATetrisPiece::BeginPlay()
 {
 	Super::BeginPlay();
+	StartControlWindow();
 	
 }
 
@@ -116,5 +129,42 @@ void ATetrisPiece::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 
+}
+
+void ATetrisPiece::OnPieceHit(
+	UPrimitiveComponent* HitComponent,
+	AActor* OtherActor,
+	UPrimitiveComponent* OtherComponent,
+	FVector NormalImpulse,
+	const FHitResult& Hit)
+{
+	if (!bIsFalling)
+	{
+		return;
+	}
+
+	const float ImpactForce = NormalImpulse.Size();
+
+	if (ImpactForce < MinimumHeavyImpact)
+	{
+		return;
+	}
+
+	const float Strength = FMath::GetMappedRangeValueClamped(
+		FVector2D(MinimumHeavyImpact, MaximumHeavyImpact),
+		FVector2D(0.0f, 1.0f),
+		ImpactForce
+	);
+
+	bIsFalling = false;
+
+	OnHeavyImpact(Strength, Hit.ImpactPoint);
+	
+	UE_LOG(
+		LogTemp,
+		Warning,
+		TEXT("Tetris piece impact: %f"),
+		ImpactForce
+	);
 }
 

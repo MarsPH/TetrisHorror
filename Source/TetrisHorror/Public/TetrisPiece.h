@@ -51,6 +51,18 @@ protected:
 	UFUNCTION(BlueprintImplementableEvent, Category = "Tetris Piece|Events")
 	void OnWarningStarted();
 
+	UFUNCTION()
+	void OnPieceHit(
+		UPrimitiveComponent* HitComponent,
+		AActor* OtherActor,
+		UPrimitiveComponent* OtherComponent,
+		FVector NormalImpulse,
+		const FHitResult& Hit
+	);
+
+	UFUNCTION(BlueprintImplementableEvent, Category = "Tetris Piece|Impact")
+	void OnHeavyImpact(float Strength, FVector ImpactLocation);
+
 public:	
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
@@ -60,6 +72,17 @@ private:
 	void CountdownStep();
 	void BeginWarning();
 	void CountdownFinished();
+
+	bool bIsFalling = false;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Tetris Piece|Impact",
+		meta = (ClampMin = "0.0"))
+	float MinimumHeavyImpact = 1000.0f;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Tetris Piece|Impact",
+		meta = (ClampMin = "0.0"))
+	float MaximumHeavyImpact = 10000.0f;
+	
 
 	FTimerHandle CountdownTimerHandle;
 
