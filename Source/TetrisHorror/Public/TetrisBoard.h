@@ -37,6 +37,12 @@ public:
 protected:
 	virtual void BeginPlay() override;
 
+	virtual void Tick(float DeltaTime) override;
+
+#if WITH_EDITOR
+	virtual bool ShouldTickIfViewportsOnly() const override;
+#endif
+
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Tetris Board")
 	TObjectPtr<USceneComponent> SceneRoot;
 
@@ -96,6 +102,13 @@ protected:
 	UFUNCTION(BlueprintImplementableEvent, Category = "Tetris Board|Events")
 	void OnGameOver();
 
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Tetris Board|Debug")
+	bool bShowDebugGrid = true;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Tetris Board|Debug",
+		meta = (ClampMin = "0.5"))
+	float DebugLineThickness = 5.0f;
+
 private:
 	void SpawnNextPiece();
 	void ScheduleNextPiece(float Delay);
@@ -134,4 +147,6 @@ private:
 	FTimerHandle LineClearTimerHandle;
 
 	bool bGameOver = false;
+	
+	void DrawBoardDebug() const;
 };

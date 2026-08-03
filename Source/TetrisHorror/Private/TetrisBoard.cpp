@@ -7,10 +7,12 @@
 #include "Kismet/GameplayStatics.h"
 #include "Sound/SoundBase.h"
 #include "TimerManager.h"
+#include "DrawDebugHelpers.h"
 
 ATetrisBoard::ATetrisBoard()
 {
-	PrimaryActorTick.bCanEverTick = false;
+	PrimaryActorTick.bCanEverTick = true;
+	PrimaryActorTick.bStartWithTickEnabled = true;
 
 	SceneRoot = CreateDefaultSubobject<USceneComponent>(TEXT("Scene Root"));
 	SetRootComponent(SceneRoot);
@@ -20,6 +22,107 @@ void ATetrisBoard::BeginPlay()
 {
 	Super::BeginPlay();
 	ScheduleNextPiece(FirstSpawnDelay);
+}
+
+void ATetrisBoard::Tick(float DeltaTime)
+{
+	Super::Tick(DeltaTime);
+
+	if (bShowDebugGrid)
+	{
+		DrawBoardDebug();
+	}
+}
+
+#if WITH_EDITOR
+bool ATetrisBoard::ShouldTickIfViewportsOnly() const
+{
+	return true;
+}
+#endif
+
+void ATetrisBoard::DrawBoardDebug() const
+{
+	UWorld* World = GetWorld();
+
+	if (!IsValid(World) || CellSize <= 0.0f)
+	{
+		return;
+	}
+
+	const FVector Origin = GetActorLocation();
+	const float HalfCell = CellSize * 0.5f;
+
+	// The actor is at the centre of cell (0, 0).
+	const float MinimumX = Origin.X - HalfCell;
+	const float MinimumZ = Origin.Z - HalfCell;
+
+	const float MaximumX = MinimumX + BoardWidth * CellSize;
+	const float MaximumZ = MinimumZ + BoardHeight * CellSize;
+
+	const float GridY = Origin.Y - CellSize * 0.51f;
+	
+	// Vertical grid lines: columns.
+	for (int32 Column = 0; Column <= BoardWidth; ++Column)
+	{
+		const float X = MinimumX + Column * CellSize;
+
+		const bool bIsBorder = Column == 0 || Column == BoardWidth;
+		const FColor Colour = bIsBorder ? FColor::White : FColor::Cyan;
+
+		DrawDebugLine(
+			World,
+			FVector(X, GridY, MinimumZ),
+			FVector(X, GridY, MaximumZ),
+			Colour,
+			false,
+			0.0f,
+			1,
+			DebugLineThickness);
+	}
+
+	// Horizontal grid lines: rows.
+	for (int32 Row = 0; Row <= BoardHeight; ++Row)
+	{
+		const float Z = MinimumZ + Row * CellSize;
+
+		const bool bIsBorder = Row == 0 || Row == BoardHeight;
+		const FColor Colour = bIsBorder ? FColor::White : FColor::Cyan;
+
+		DrawDebugLine(
+			World,
+			FVector(MinimumX, GridY, Z),
+			FVector(MaximumX, GridY, Z),
+			Colour,
+			false,
+			0.0f,
+			1,
+			DebugLineThickness);
+	}
+
+	// Green point: centre of cell (0, 0), also the actor location.
+	DrawDebugPoint(
+		World,
+		Origin,
+		30.0f,
+		FColor::Green,
+		false,
+		0.0f,
+		1);
+
+	// Red box: where the next piece's anchor spawns.
+	const FVector SpawnLocation =
+		GridToWorld(FIntPoint(BoardWidth / 2, SpawnHeightRows));
+
+	DrawDebugBox(
+		World,
+		SpawnLocation,
+		FVector(HalfCell, 20.0f, HalfCell),
+		FColor::Red,
+		false,
+		0.0f,
+		1,
+		DebugLineThickness);
 }
 
 FVector ATetrisBoard::GridToWorld(const FIntPoint GridCoordinate) const
