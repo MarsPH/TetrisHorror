@@ -238,6 +238,13 @@ void ATetrisPiece::OnPieceHit(
 		return;
 	}
 
+	// Ignore contact with vertical sides.
+	// A landing surface should push mostly upward.
+	if (Hit.ImpactNormal.Z < 0.6f)
+	{
+		return;
+	}
+
 	bLandingRequested = true;
 	StopFallingAudio();
 
