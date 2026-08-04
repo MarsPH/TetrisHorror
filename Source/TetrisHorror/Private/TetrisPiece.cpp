@@ -173,8 +173,7 @@ void ATetrisPiece::ApplyControlledRotation(const int32 NewRotationStep)
 	RotationStep = ((NewRotationStep % 4) + 4) % 4;
 
 	// A Tetris board lies in the world X/Z plane, so rotation is around Y (Pitch).
-	SetActorRotation(FRotator(RotationStep * 90.0f, 0.0f, 0.0f));
-}
+    SetActorRotation(FRotator(-RotationStep * 90.0f, 0.0f, 0.0f));}
 
 void ATetrisPiece::GetRotatedCellOffsets(
 	const int32 InRotationStep,
