@@ -21,7 +21,19 @@ ATetrisPiece::ATetrisPiece()
 	PieceMesh->SetSimulatePhysics(false);
 	PieceMesh->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
 	PieceMesh->SetNotifyRigidBodyCollision(true);
-	PieceMesh->OnComponentHit.AddDynamic(this, &ATetrisPiece::OnPieceHit);
+	PieceMesh->SetGenerateOverlapEvents(true);
+
+
+	// The piece collides physically with the environment,
+	// but passes through the player without being deflected.
+	PieceMesh->SetCollisionResponseToChannel(ECC_Pawn, ECR_Overlap);
+
+	PieceMesh->OnComponentBeginOverlap.AddDynamic(
+		this,
+		&ATetrisPiece::OnPieceOverlap);
+
+	PieceMesh->OnComponentHit.AddDynamic(
+		this, &ATetrisPiece::OnPieceHit);
 }
 
 void ATetrisPiece::InitializePiece(ATetrisBoard* InBoard)
@@ -73,6 +85,8 @@ void ATetrisPiece::StartControlWindow()
 		&ATetrisPiece::CountdownStep,
 		1.0f,
 		true);
+
+	bHasCrushedPlayer = false;
 }
 
 void ATetrisPiece::CountdownStep()
@@ -236,37 +250,6 @@ void ATetrisPiece::OnPieceHit(
 	FVector NormalImpulse,
 	const FHitResult& Hit)
 {
-	if (!bIsFalling || OtherActor == this)
-	{
-		return;
-	}
-
-	// Damage the player, but don't treat the player as the landing surface.
-	if (ACharacter* HitCharacter = Cast<ACharacter>(OtherActor))
-	{
-		UGameplayStatics::ApplyDamage(
-			HitCharacter,
-			CrushDamage,
-			nullptr,
-			this,
-			UDamageType::StaticClass());
-
-		return;
-	}
-
-	if (bLandingRequested)
-	{
-		return;
-	}
-
-	// Side contact is not a landing.
-	if (Hit.ImpactNormal.Z < 0.6f)
-	{
-		return;
-	}
-
-	bLandingRequested = true;
-
 	
 	if (!bIsFalling || bLandingRequested || OtherActor == this)
 	{
@@ -306,6 +289,36 @@ void ATetrisPiece::OnPieceHit(
 	{
 		Board->NotifyPieceImpact(this);
 	}
+}
+
+void ATetrisPiece::OnPieceOverlap(
+	UPrimitiveComponent* OverlappedComponent,
+	AActor* OtherActor,
+	UPrimitiveComponent* OtherComponent,
+	int32 OtherBodyIndex,
+	bool bFromSweep,
+	const FHitResult& SweepResult)
+{
+	if (!bIsFalling || bHasCrushedPlayer || !IsValid(OtherActor))
+	{
+		return;
+	}
+
+	ACharacter* HitCharacter = Cast<ACharacter>(OtherActor);
+
+	if (!IsValid(HitCharacter))
+	{
+		return;
+	}
+
+	bHasCrushedPlayer = true;
+
+	UGameplayStatics::ApplyDamage(
+		HitCharacter,
+		CrushDamage,
+		nullptr,
+		this,
+		UDamageType::StaticClass());
 }
 
 void ATetrisPiece::PrepareForLock()

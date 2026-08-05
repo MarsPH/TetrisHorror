@@ -112,6 +112,7 @@ protected:
 	UPROPERTY(EditDefaultsOnly, Category = "Tetris Piece|Damage",
     	meta = (ClampMin = "0.0"))
     float CrushDamage = 100.0f;
+	
 
 	UFUNCTION(BlueprintImplementableEvent, Category = "Tetris Piece|Events")
 	void OnCountdownChanged(int32 NewTimeRemaining);
@@ -134,6 +135,15 @@ private:
 		FVector NormalImpulse,
 		const FHitResult& Hit);
 
+	UFUNCTION()
+	void OnPieceOverlap(
+		UPrimitiveComponent* OverlappedComponent,
+		AActor* OtherActor,
+		UPrimitiveComponent* OtherComponent,
+		int32 OtherBodyIndex,
+		bool bFromSweep,
+		const FHitResult& SweepResult);
+
 	void CountdownStep();
 	void BeginWarning();
 	void StopFallingAudio();
@@ -151,4 +161,5 @@ private:
 	bool bIsFalling = false;
 	bool bWarningStarted = false;
 	bool bLandingRequested = false;
+	bool bHasCrushedPlayer = false;
 };
