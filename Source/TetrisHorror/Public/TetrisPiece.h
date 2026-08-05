@@ -108,6 +108,10 @@ protected:
 	UPROPERTY(EditDefaultsOnly, Category = "Tetris Piece|Falling",
 		meta = (ClampMin = "0.0"))
 	float InitialDownwardSpeed = 400.0f;
+	
+	UPROPERTY(EditDefaultsOnly, Category = "Tetris Piece|Damage",
+    	meta = (ClampMin = "0.0"))
+    float CrushDamage = 100.0f;
 
 	UFUNCTION(BlueprintImplementableEvent, Category = "Tetris Piece|Events")
 	void OnCountdownChanged(int32 NewTimeRemaining);

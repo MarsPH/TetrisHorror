@@ -6,6 +6,9 @@
 #include "Kismet/GameplayStatics.h"
 #include "Sound/SoundBase.h"
 #include "TimerManager.h"
+#include "GameFramework/Character.h"
+#include "GameFramework/DamageType.h"
+
 
 ATetrisPiece::ATetrisPiece()
 {
@@ -233,6 +236,38 @@ void ATetrisPiece::OnPieceHit(
 	FVector NormalImpulse,
 	const FHitResult& Hit)
 {
+	if (!bIsFalling || OtherActor == this)
+	{
+		return;
+	}
+
+	// Damage the player, but don't treat the player as the landing surface.
+	if (ACharacter* HitCharacter = Cast<ACharacter>(OtherActor))
+	{
+		UGameplayStatics::ApplyDamage(
+			HitCharacter,
+			CrushDamage,
+			nullptr,
+			this,
+			UDamageType::StaticClass());
+
+		return;
+	}
+
+	if (bLandingRequested)
+	{
+		return;
+	}
+
+	// Side contact is not a landing.
+	if (Hit.ImpactNormal.Z < 0.6f)
+	{
+		return;
+	}
+
+	bLandingRequested = true;
+
+	
 	if (!bIsFalling || bLandingRequested || OtherActor == this)
 	{
 		return;
