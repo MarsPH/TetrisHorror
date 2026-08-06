@@ -8,6 +8,7 @@
 #include "TimerManager.h"
 #include "GameFramework/Character.h"
 #include "GameFramework/DamageType.h"
+#include "Components/CapsuleComponent.h"
 
 
 ATetrisPiece::ATetrisPiece()
@@ -299,7 +300,10 @@ void ATetrisPiece::OnPieceOverlap(
 	bool bFromSweep,
 	const FHitResult& SweepResult)
 {
-	if (!bIsFalling || bHasCrushedPlayer || !IsValid(OtherActor))
+	if (!bIsFalling ||
+		bHasCrushedPlayer ||
+		!IsValid(OtherActor) ||
+		!IsValid(PieceMesh))
 	{
 		return;
 	}
@@ -307,6 +311,38 @@ void ATetrisPiece::OnPieceOverlap(
 	ACharacter* HitCharacter = Cast<ACharacter>(OtherActor);
 
 	if (!IsValid(HitCharacter))
+	{
+		return;
+	}
+
+	UCapsuleComponent* PlayerCapsule =
+		HitCharacter->GetCapsuleComponent();
+
+	if (!IsValid(PlayerCapsule))
+	{
+		return;
+	}
+
+	// The piece must actually be descending quickly.
+	const float DownwardSpeed =
+		-PieceMesh->GetPhysicsLinearVelocity().Z;
+
+	if (DownwardSpeed < MinimumCrushSpeed)
+	{
+		return;
+	}
+
+	const float PieceBottomZ =
+		PieceMesh->Bounds.Origin.Z -
+		PieceMesh->Bounds.BoxExtent.Z;
+
+	const float PlayerTopZ =
+		PlayerCapsule->Bounds.Origin.Z +
+		PlayerCapsule->Bounds.BoxExtent.Z;
+
+	// If the bottom of the piece is far below the player's head,
+	// this is side contact, not a crushing hit.
+	if (PieceBottomZ < PlayerTopZ - CrushTopTolerance)
 	{
 		return;
 	}
