@@ -36,6 +36,7 @@ public:
 	void ApplyControlledGridPosition(const FVector& NewWorldLocation);
 	void ApplyControlledRotation(int32 NewRotationStep);
 	void PrepareForLock();
+	FVector FallColumnLocation = FVector::ZeroVector;
 
 	int32 GetRotationStep() const { return RotationStep; }
 	TSubclassOf<ATetrisCell> GetLockedCellClass() const { return LockedCellClass; }

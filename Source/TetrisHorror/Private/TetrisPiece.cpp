@@ -130,7 +130,9 @@ void ATetrisPiece::StartFalling()
 	bIsControllable = false;
 	bIsFalling = true;
 	OnControlEnded();
-
+	
+	FallColumnLocation = GetActorLocation();
+	
 	PieceMesh->SetSimulatePhysics(true);
 	PieceMesh->SetMassOverrideInKg(NAME_None, PieceMassKg, true);
 	PieceMesh->SetPhysicsLinearVelocity(FVector(0.0f, 0.0f, -InitialDownwardSpeed));
@@ -272,17 +274,39 @@ void ATetrisPiece::OnPieceHit(
 	NormalImpulse.Z,
 	PieceMesh->GetPhysicsLinearVelocity().Z);
 
-	const float PostImpactVerticalSpeed =
-		PieceMesh->GetPhysicsLinearVelocity().Z;
+	const FVector PostImpactVelocity =
+		PieceMesh->GetPhysicsLinearVelocity();
 
 	const bool bContactFacesUp =
 		Hit.ImpactNormal.Z >= 0.1f;
 
 	const bool bFallWasStopped =
-		PostImpactVerticalSpeed >= -100.0f;
+		PostImpactVelocity.Z >= -100.0f;
 
 	if (!bContactFacesUp || !bFallWasStopped)
 	{
+		// Chaos already moved the piece during collision resolution.
+		// Return it to its original falling column.
+		FVector CorrectedLocation = GetActorLocation();
+		CorrectedLocation.X = FallColumnLocation.X;
+		CorrectedLocation.Y = FallColumnLocation.Y;
+
+		SetActorLocation(
+			CorrectedLocation,
+			false,
+			nullptr,
+			ETeleportType::TeleportPhysics);
+
+		// Remove the collision impulse and continue downward.
+		FVector CorrectedVelocity = PostImpactVelocity;
+		CorrectedVelocity.X = 0.0f;
+		CorrectedVelocity.Y = 0.0f;
+		CorrectedVelocity.Z =
+			FMath::Min(CorrectedVelocity.Z, -100.0f);
+
+		PieceMesh->SetPhysicsLinearVelocity(CorrectedVelocity);
+		PieceMesh->SetPhysicsAngularVelocityInDegrees(FVector::ZeroVector);
+
 		return;
 	}
 
