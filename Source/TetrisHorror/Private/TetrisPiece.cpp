@@ -257,17 +257,46 @@ void ATetrisPiece::OnPieceHit(
 		return;
 	}
 
-	// Ignore contact with vertical sides.
-	// A landing surface should push mostly upward.
-	if (Hit.ImpactNormal.Z < 0.6f)
+	
+	if (Cast<ACharacter>(OtherActor))
 	{
 		return;
 	}
 
+	UE_LOG(
+	LogTemp,
+	Warning,
+	TEXT("Hit: %s | ImpactNormalZ: %.3f | ImpulseZ: %.2f | VelocityZ: %.2f"),
+	*GetNameSafe(OtherActor),
+	Hit.ImpactNormal.Z,
+	NormalImpulse.Z,
+	PieceMesh->GetPhysicsLinearVelocity().Z);
+
+	const float PostImpactVerticalSpeed =
+		PieceMesh->GetPhysicsLinearVelocity().Z;
+
+	const bool bContactFacesUp =
+		Hit.ImpactNormal.Z >= 0.1f;
+
+	const bool bFallWasStopped =
+		PostImpactVerticalSpeed >= -100.0f;
+
+	if (!bContactFacesUp || !bFallWasStopped)
+	{
+		return;
+	}
+
+	const float ImpactForce = NormalImpulse.Size();
+
+
 	bLandingRequested = true;
 	StopFallingAudio();
 
-	const float ImpactForce = NormalImpulse.Size();
+
+	// Freeze before Chaos can continue resolving the collision.
+	PieceMesh->SetPhysicsLinearVelocity(FVector::ZeroVector);
+	PieceMesh->SetPhysicsAngularVelocityInDegrees(FVector::ZeroVector);
+	PieceMesh->SetSimulatePhysics(false);
 
 	if (IsValid(ImpactSound))
 	{
