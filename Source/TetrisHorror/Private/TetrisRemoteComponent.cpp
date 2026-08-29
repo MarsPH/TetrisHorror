@@ -58,3 +58,11 @@ void UTetrisRemoteComponent::DropNow()
 		Board->DropActivePiece();
 	}
 }
+
+bool UTetrisRemoteComponent::IsCellOccupied(
+	int32 GridX,
+	int32 GridY) const
+{
+	return IsValid(Board) &&
+		Board->IsCellOccupied(GridX, GridY);
+}

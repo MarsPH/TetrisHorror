@@ -617,4 +617,10 @@ void ATetrisBoard::CollapseRows(const TArray<int32>& ClearedRows)
 		Pair.Value->MoveToGridCoordinate(NewCoordinate, GridToWorld(NewCoordinate));
 		OccupiedCells.Add(NewCoordinate, Pair.Value);
 	}
+	
+}
+
+bool ATetrisBoard::IsCellOccupied(int32 GridX, int32 GridY) const
+{
+	return OccupiedCells.Contains(FIntPoint(GridX, GridY));
 }

@@ -29,6 +29,9 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "Tetris Remote")
 	void DropNow();
 
+	UFUNCTION(BlueprintPure, Category = "Tetris Remote")
+	bool IsCellOccupied(int32 GridX, int32 GridY) const;
+
 protected:
 	virtual void BeginPlay() override;
 

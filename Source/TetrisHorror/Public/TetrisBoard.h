@@ -33,6 +33,9 @@ public:
 
 	UFUNCTION(BlueprintPure, Category = "Tetris Board")
 	FVector GridToWorld(FIntPoint GridCoordinate) const;
+	
+	UFUNCTION(BlueprintPure, Category = "Tetris|Remote")
+	bool IsCellOccupied(int32 GridX, int32 GridY) const;
 
 protected:
 	virtual void BeginPlay() override;
