@@ -66,3 +66,11 @@ bool UTetrisRemoteComponent::IsCellOccupied(
 	return IsValid(Board) &&
 		Board->IsCellOccupied(GridX, GridY);
 }
+
+bool UTetrisRemoteComponent::IsCellPartOfActivePiece(
+	int32 GridX,
+	int32 GridY) const
+{
+	return IsValid(Board) &&
+		Board->IsCellPartOfActivePiece(GridX, GridY);
+}

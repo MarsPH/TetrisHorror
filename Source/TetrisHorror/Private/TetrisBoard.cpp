@@ -624,3 +624,34 @@ bool ATetrisBoard::IsCellOccupied(int32 GridX, int32 GridY) const
 {
 	return OccupiedCells.Contains(FIntPoint(GridX, GridY));
 }
+
+bool ATetrisBoard::IsCellPartOfActivePiece(
+	int32 GridX,
+	int32 GridY) const
+{
+	if (!IsValid(ActivePiece))
+	{
+		return false;
+	}
+
+	const FIntPoint Anchor =
+		WorldToGrid(ActivePiece->GetActorLocation());
+
+	TArray<FIntPoint> Offsets;
+
+	ActivePiece->GetRotatedCellOffsets(
+		ActivePiece->GetRotationStep(),
+		Offsets);
+
+	const FIntPoint TargetCell(GridX, GridY);
+
+	for (const FIntPoint& Offset : Offsets)
+	{
+		if (Anchor + Offset == TargetCell)
+		{
+			return true;
+		}
+	}
+
+	return false;
+}
