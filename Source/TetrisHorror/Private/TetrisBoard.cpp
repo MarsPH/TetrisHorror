@@ -180,8 +180,20 @@ void ATetrisBoard::SpawnNextPiece()
 		return;
 	}
 
-	const int32 ClassIndex = FMath::RandRange(0, ValidClasses.Num() - 1);
-	const TSubclassOf<ATetrisPiece> ChosenClass = ValidClasses[ClassIndex];
+	if (PieceBag.IsEmpty())
+	{
+		RefillPieceBag();
+	}
+
+	if (PieceBag.IsEmpty())
+	{
+		UE_LOG(LogTemp, Error,
+			TEXT("TetrisBoard has no valid PieceClasses."));
+		return;
+	}
+
+	const TSubclassOf<ATetrisPiece> ChosenClass =
+		PieceBag.Pop();
 
 	const FIntPoint SpawnAnchor(BoardWidth / 2, SpawnHeightRows);
 	const FTransform SpawnTransform(
@@ -654,4 +666,24 @@ bool ATetrisBoard::IsCellPartOfActivePiece(
 	}
 
 	return false;
+}
+
+void ATetrisBoard::RefillPieceBag()
+{
+	PieceBag.Reset();
+
+	for (const TSubclassOf<ATetrisPiece>& PieceClass : PieceClasses)
+	{
+		if (PieceClass)
+		{
+			PieceBag.Add(PieceClass);
+		}
+	}
+
+	// Fisher–Yates shuffle
+	for (int32 Index = PieceBag.Num() - 1; Index > 0; --Index)
+	{
+		const int32 RandomIndex = FMath::RandRange(0, Index);
+		PieceBag.Swap(Index, RandomIndex);
+	}
 }

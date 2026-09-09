@@ -39,6 +39,11 @@ public:
 	
 	UFUNCTION(BlueprintPure, Category = "Tetris|Remote")
 	bool IsCellPartOfActivePiece(int32 GridX, int32 GridY) const;
+	
+	UPROPERTY(Transient)
+	TArray<TSubclassOf<ATetrisPiece>> PieceBag;
+
+	void RefillPieceBag();
 
 protected:
 	virtual void BeginPlay() override;
