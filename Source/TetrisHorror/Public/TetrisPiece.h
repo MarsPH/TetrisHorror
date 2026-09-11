@@ -57,6 +57,12 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "Tetris Piece|State")
 	void StartFalling();
 
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Tetris|Audio")
+	TObjectPtr<UAudioComponent> FallingAudioComponent;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Tetris|Audio")
+	TObjectPtr<USoundBase> FallingSound;
+
 protected:
 	virtual void BeginPlay() override;
 
@@ -86,10 +92,7 @@ protected:
 
 	UPROPERTY(EditDefaultsOnly, Category = "Tetris Piece|Audio")
 	TObjectPtr<USoundBase> WarningSound;
-
-	// Make this sound loop if it should continue for the whole fall.
-	UPROPERTY(EditDefaultsOnly, Category = "Tetris Piece|Audio")
-	TObjectPtr<USoundBase> FallingSound;
+	
 
 	UPROPERTY(EditDefaultsOnly, Category = "Tetris Piece|Audio")
 	TObjectPtr<USoundBase> ImpactSound;
@@ -159,9 +162,6 @@ private:
 
 	UPROPERTY(Transient)
 	TObjectPtr<ATetrisBoard> Board;
-
-	UPROPERTY(Transient)
-	TObjectPtr<UAudioComponent> FallingAudioComponent;
 
 	FTimerHandle CountdownTimerHandle;
 

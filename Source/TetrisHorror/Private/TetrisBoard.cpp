@@ -471,6 +471,16 @@ void ATetrisBoard::LockActivePiece()
 		OccupiedCells.Add(SpawnedCoordinates[Index], SpawnedCells[Index]);
 	}
 
+	// PLAY LOCK SOUND HERE
+	if (IsValid(LockSound))
+	{
+		UGameplayStatics::PlaySoundAtLocation(
+			this,
+			LockSound,
+			ActivePiece->GetActorLocation()
+		);
+	}
+
 	ActivePiece->Destroy();
 	ActivePiece = nullptr;
 

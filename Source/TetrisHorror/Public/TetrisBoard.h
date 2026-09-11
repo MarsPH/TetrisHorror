@@ -43,6 +43,9 @@ public:
 	UPROPERTY(Transient)
 	TArray<TSubclassOf<ATetrisPiece>> PieceBag;
 
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Tetris|Audio")
+	TObjectPtr<USoundBase> LockSound;
+
 	void RefillPieceBag();
 
 protected:

@@ -35,6 +35,12 @@ ATetrisPiece::ATetrisPiece()
 
 	PieceMesh->OnComponentHit.AddDynamic(
 		this, &ATetrisPiece::OnPieceHit);
+
+	FallingAudioComponent =
+	CreateDefaultSubobject<UAudioComponent>(TEXT("Falling Audio"));
+
+	FallingAudioComponent->SetupAttachment(PieceMesh);
+	FallingAudioComponent->bAutoActivate = false;
 }
 
 void ATetrisPiece::InitializePiece(ATetrisBoard* InBoard)
@@ -137,6 +143,12 @@ void ATetrisPiece::StartFalling()
 	PieceMesh->SetMassOverrideInKg(NAME_None, PieceMassKg, true);
 	PieceMesh->SetPhysicsLinearVelocity(FVector(0.0f, 0.0f, -InitialDownwardSpeed));
 	PieceMesh->WakeAllRigidBodies();
+
+	if (IsValid(FallingAudioComponent) && IsValid(FallingSound))
+	{
+		FallingAudioComponent->SetSound(FallingSound);
+		FallingAudioComponent->Play();
+	}
 
 	if (IsValid(FallingSound))
 	{
@@ -339,6 +351,11 @@ void ATetrisPiece::OnPieceHit(
 
 	UE_LOG(LogTemp, Log, TEXT("Tetris piece impact: %.2f"), ImpactForce);
 
+	if (IsValid(FallingAudioComponent))
+	{
+		FallingAudioComponent->Stop();
+	}
+	
 	if (IsValid(Board))
 	{
 		Board->NotifyPieceImpact(this);
